@@ -118,7 +118,7 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     best_val = -1
     best_softmax = None
     all_classifiers = []
-    learning_rates = [10 ** i for i in np.linspace(-5.2, -4.8, num=20)]
+    learning_rates = [10 ** i for i in np.linspace(-5.3, -5.1, num=10)]
     regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=20)]
 
     ############################################################################
@@ -136,6 +136,9 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     # the validation code with a larger value for num_iters.                   #
     ############################################################################
 
+    total = len(learning_rates) * len(regularization_strengths)
+    iter = 0
+
     for l in learning_rates:
         for r in regularization_strengths:
             softmax = SoftmaxClassifier()
@@ -152,6 +155,9 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
                 best_val = y_val_acc
                 l_opt = l
                 r_opt = r
+
+            iter += 1
+            print("%d / %d" % (iter, total))
 
     best_softmax = SoftmaxClassifier()
     best_softmax.train(X_train, y_train, learning_rate=l_opt, reg=r_opt, num_iters=4000)

@@ -79,6 +79,17 @@ class TwoLayerNet(object):
         # array of shape (N, C).                                               #         
         ########################################################################
 
+        # First layer scores
+        hidden_scores = np.dot(X, W1)
+        hidden_scores += np.ones_like(hidden_scores) * b1
+
+        # ReLU activation
+        hidden_values = np.maximum(hidden_scores, np.zeros_like(hidden_scores))
+
+        # Second layer scores
+        scores = np.dot(hidden_values, W2)
+        scores += np.ones_like(scores) * b2
+
         ########################################################################
         #                              END OF YOUR CODE                        #
         ########################################################################
@@ -97,6 +108,14 @@ class TwoLayerNet(object):
         # the regularization loss by 0.5                                       #
         ########################################################################
 
+        # Softmax
+        C = b2.shape[0]
+        probs = np.exp(scores)
+        probs /= probs.sum(1).reshape(-1, 1)
+
+        mask = ((np.ones_like(probs) * range(C)) == y.reshape(-1, 1))
+        loss = np.log(probs[mask]).mean() * (-1) + 0.5 * reg * (np.sum(W1**2) + np.sum(W2**2))
+
         ########################################################################
         #                              END OF YOUR CODE                        #
         ########################################################################
@@ -109,6 +128,19 @@ class TwoLayerNet(object):
         # example, grads['W1'] should store the gradient on W1, and be a matrix#
         # of same size                                                         #
         ########################################################################
+
+        probs_m = probs - mask
+
+        # dL/dw2 = dL/ds2 * ds2/dw2
+        grads['W2'] = np.dot(hidden_values.transpose(), probs_m) / N + (reg * W2)
+        grads['b2'] = np.ones(N).dot(probs_m) / N
+
+        # dL/dw1 = dL/ds2 * ds2/dh * dh/ds1 * ds1/dw1
+        relu_mask = (hidden_values > 0)
+        dH = np.dot(probs_m, W2.transpose()) * relu_mask #N * H
+
+        grads['W1'] = np.dot(X.transpose(), dH) / N + (reg * W1)
+        grads['b1'] = dH.sum(0) / N
 
         ########################################################################
         #                              END OF YOUR CODE                        #
@@ -154,6 +186,8 @@ class TwoLayerNet(object):
             # TODO: Create a random minibatch of training data and labels,     #
             # storing hem in X_batch and y_batch respectively.                 #
             ####################################################################
+
+            
 
             ####################################################################
             #                             END OF YOUR CODE                     #
