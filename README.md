@@ -1,5 +1,5 @@
 # in2346
-IN2346 2018 SoSe Exercises
+IN2346 2018 SoSe Exercises  
 *Hong Wing PANG*
 
 * Exercise 1 (Deadline: 23/5)

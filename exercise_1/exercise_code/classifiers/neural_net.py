@@ -110,7 +110,7 @@ class TwoLayerNet(object):
 
         # Softmax
         C = b2.shape[0]
-        probs = np.exp(scores)
+        probs = np.exp(scores - np.amax(scores, 1).reshape(-1, 1))
         probs /= probs.sum(1).reshape(-1, 1)
 
         mask = ((np.ones_like(probs) * range(C)) == y.reshape(-1, 1))
@@ -187,7 +187,9 @@ class TwoLayerNet(object):
             # storing hem in X_batch and y_batch respectively.                 #
             ####################################################################
 
-            
+            indices = np.random.choice(num_train, batch_size)
+            X_batch = X[indices]
+            y_batch = y[indices]          
 
             ####################################################################
             #                             END OF YOUR CODE                     #
@@ -203,6 +205,11 @@ class TwoLayerNet(object):
             # using stochastic gradient descent. You'll need to use the        #
             # gradients stored in the grads dictionary defined above.          #
             ####################################################################
+
+            self.params['W1'] -= learning_rate * grads['W1']
+            self.params['W2'] -= learning_rate * grads['W2']
+            self.params['b1'] -= learning_rate * grads['b1']
+            self.params['b2'] -= learning_rate * grads['b2']
 
             ####################################################################
             #                             END OF YOUR CODE                     #
@@ -249,8 +256,52 @@ class TwoLayerNet(object):
         # TODO: Implement this function; it should be VERY simple!             #
         ########################################################################
 
+        y_pred = np.argmax(self.loss(X), axis=1)
+
         ########################################################################
         #                              END OF YOUR CODE                        #
         ########################################################################
 
         return y_pred
+
+def neuralnetwork_hyperparameter_tuning(X_train, y_train, X_val, y_val):
+    import matplotlib.pyplot as plt
+
+    input_size = 32 * 32 * 3
+    num_classes = 10
+
+    # Hyperparameters
+    hidden_size = 200
+
+    net = TwoLayerNet(input_size, hidden_size, num_classes)
+
+    # Train the network
+    stats = net.train(X_train, y_train, X_val, y_val,
+                num_iters=9000, batch_size=50,
+                learning_rate=5e-4, learning_rate_decay=0.95,
+                reg=2.3, verbose=True)
+
+    # Predict on the validation set
+    val_acc = (net.predict(X_val) == y_val).mean()
+    print('Validation accuracy: ', val_acc)
+
+    # Plot the loss function and train / validation accuracies
+    plt.subplots(nrows=2, ncols=1)
+
+    plt.subplot(2, 1, 1)
+    plt.plot(stats['loss_history'])
+    plt.title('Loss history')
+    plt.xlabel('Iteration')
+    plt.ylabel('Loss')
+
+    plt.subplot(2, 1, 2)
+    plt.plot(stats['train_acc_history'], label='train')
+    plt.plot(stats['val_acc_history'], label='val')
+    plt.title('Classification accuracy history')
+    plt.xlabel('Epoch')
+    plt.ylabel('Clasification accuracy')
+
+    plt.tight_layout()
+    plt.show()
+
+    return net

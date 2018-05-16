@@ -53,10 +53,7 @@ class LinearClassifier(object):
             # replacement is faster than sampling without replacement.              #
             #########################################################################
 
-            assert X.shape[0] == y.shape[0]
-            N = y.shape[0]
-
-            indices = np.random.choice(N, batch_size)
+            indices = np.random.choice(num_train, batch_size)
             X_batch = X[indices]
             y_batch = y[indices]
 
@@ -104,9 +101,7 @@ class LinearClassifier(object):
         # Implement this method. Store the predicted labels in y_pred.            #
         ###########################################################################
 
-        test = np.exp(np.dot(X, self.W))
-        test /= np.sum(test, axis=1).reshape(-1, 1)
-        y_pred = np.argmax(test, axis=1)
+        y_pred = np.argmax(np.dot(X, self.W), axis=1)
 
         ###########################################################################
         #                           END OF YOUR CODE                              #

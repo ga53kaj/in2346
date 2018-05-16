@@ -86,8 +86,10 @@ def cross_entropoy_loss_vectorized(W, X, y, reg):
     
     N = y.shape[0]
     D, C = W.shape
-    probs = np.exp(np.dot(X, W))
-    probs /= np.sum(probs, axis=1).reshape(-1, 1)
+
+    scores = np.dot(X, W)
+    probs = np.exp(scores - np.amax(scores, 1).reshape(-1, 1))
+    probs /= probs.sum(1).reshape(-1, 1)
 
     mask = np.tile(range(C), (N, 1))
     mask = np.equal(mask, y.reshape(-1, 1))
@@ -118,8 +120,8 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     best_val = -1
     best_softmax = None
     all_classifiers = []
-    learning_rates = [10 ** i for i in np.linspace(-5.3, -5.1, num=10)]
-    regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=20)]
+    learning_rates = [10 ** i for i in np.linspace(-5.3, -5.2, num=5)]
+    regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=5)]
 
     ############################################################################
     # TODO:                                                                    #
@@ -142,7 +144,7 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     for l in learning_rates:
         for r in regularization_strengths:
             softmax = SoftmaxClassifier()
-            softmax.train(X_train, y_train, learning_rate=l, reg=r, num_iters=1500)
+            softmax.train(X_train, y_train, learning_rate=l, reg=r, num_iters=5000)
             
             y_train_pred = softmax.predict(X_train)
             y_train_acc = np.mean(y_train == y_train_pred)
@@ -153,14 +155,7 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
             results[l, r] = (y_train_acc, y_val_acc)
             if y_val_acc > best_val:
                 best_val = y_val_acc
-                l_opt = l
-                r_opt = r
-
-            iter += 1
-            print("%d / %d" % (iter, total))
-
-    best_softmax = SoftmaxClassifier()
-    best_softmax.train(X_train, y_train, learning_rate=l_opt, reg=r_opt, num_iters=4000)
+                best_softmax = softmax
 
     ############################################################################
     #                              END OF YOUR CODE                            #
