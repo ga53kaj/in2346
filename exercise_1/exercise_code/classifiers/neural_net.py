@@ -267,23 +267,30 @@ class TwoLayerNet(object):
 def neuralnetwork_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     import matplotlib.pyplot as plt
 
-    input_size = 32 * 32 * 3
+    input_size = X_train.shape[1]
     num_classes = 10
 
     # Hyperparameters
-    hidden_size = 200
-
-    net = TwoLayerNet(input_size, hidden_size, num_classes)
-
+    hidden_size = [100, 200, 300, 400, 500]
+    learning_rates = [10 ** i for i in np.linspace(-4, -3, num=21)]
+    batch_size = [64, 128, 256, 512]
+    
     # Train the network
+    #for param in hidden_size:
+    acc_list = []
+    #for n in range(10):
+    net = TwoLayerNet(input_size, 500, num_classes)
+
     stats = net.train(X_train, y_train, X_val, y_val,
-                num_iters=9000, batch_size=50,
-                learning_rate=5e-4, learning_rate_decay=0.95,
-                reg=2.3, verbose=True)
+                num_iters=8000, batch_size=128,
+                learning_rate=3.98e-4, learning_rate_decay=0.95,
+                reg=2.3, verbose=False)
 
     # Predict on the validation set
     val_acc = (net.predict(X_val) == y_val).mean()
-    print('Validation accuracy: ', val_acc)
+    #acc_list.append(val_acc)
+    print('Value: , Validation accuracy: %.3f, ' % (val_acc))
+    #print(acc_list, '\n')
 
     # Plot the loss function and train / validation accuracies
     plt.subplots(nrows=2, ncols=1)
@@ -303,5 +310,4 @@ def neuralnetwork_hyperparameter_tuning(X_train, y_train, X_val, y_val):
 
     plt.tight_layout()
     plt.show()
-
     return net
