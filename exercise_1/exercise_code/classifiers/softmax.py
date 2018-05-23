@@ -126,8 +126,8 @@ def softmax_hyperparameter_tuning(X_train, y_train, X_val, y_val):
     regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=5)]
 
     # for exercise 1.3
-    learning_rates = [10 ** i for i in np.linspace(-2.0, -1.6, num=11)]
-    regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=6)]
+    #learning_rates = [10 ** i for i in np.linspace(-2.0, -1.6, num=11)]
+    #regularization_strengths = [10 ** i for i in np.linspace(4, 5, num=6)]
 
     ############################################################################
     # TODO:                                                                    #

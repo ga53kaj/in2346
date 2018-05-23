@@ -264,50 +264,30 @@ class TwoLayerNet(object):
 
         return y_pred
 
-def neuralnetwork_hyperparameter_tuning(X_train, y_train, X_val, y_val):
+def neuralnetwork_hyperparameter_tuning(net, X_train, y_train, X_val, y_val):
     import matplotlib.pyplot as plt
 
-    input_size = X_train.shape[1]
-    num_classes = 10
-
     # Hyperparameters
-    hidden_size = [100, 200, 300, 400, 500]
-    learning_rates = [10 ** i for i in np.linspace(-4, -3, num=21)]
+    learning_rates = [10 ** i for i in np.linspace(-1, 0, num=21)]
     batch_size = [64, 128, 256, 512]
+    regularization_constants = [1.0]
     
     # Train the network
-    #for param in hidden_size:
-    acc_list = []
-    #for n in range(10):
-    net = TwoLayerNet(input_size, 500, num_classes)
+    for param in regularization_constants:
+        acc_list = []
+        for n in range(8):
+            #stats = net.train(X_train, y_train, X_val, y_val,
+                        #num_iters=1000, batch_size=128,
+                        #learning_rate=0.1122, learning_rate_decay=0.95,
+                        #reg=1e-4, verbose=False)
+            stats = net.train(X_train, y_train, X_val, y_val,
+                        num_iters=1000, batch_size=128,
+                        learning_rate=3.98e-4, learning_rate_decay=0.95,
+                        reg=param, verbose=False)
 
-    stats = net.train(X_train, y_train, X_val, y_val,
-                num_iters=8000, batch_size=128,
-                learning_rate=3.98e-4, learning_rate_decay=0.95,
-                reg=2.3, verbose=False)
+            # Predict on the validation set
+            val_acc = (net.predict(X_val) == y_val).mean()
+            acc_list.append(val_acc)
 
-    # Predict on the validation set
-    val_acc = (net.predict(X_val) == y_val).mean()
-    #acc_list.append(val_acc)
-    print('Value: , Validation accuracy: %.3f, ' % (val_acc))
-    #print(acc_list, '\n')
-
-    # Plot the loss function and train / validation accuracies
-    plt.subplots(nrows=2, ncols=1)
-
-    plt.subplot(2, 1, 1)
-    plt.plot(stats['loss_history'])
-    plt.title('Loss history')
-    plt.xlabel('Iteration')
-    plt.ylabel('Loss')
-
-    plt.subplot(2, 1, 2)
-    plt.plot(stats['train_acc_history'], label='train')
-    plt.plot(stats['val_acc_history'], label='val')
-    plt.title('Classification accuracy history')
-    plt.xlabel('Epoch')
-    plt.ylabel('Clasification accuracy')
-
-    plt.tight_layout()
-    plt.show()
-    return net
+        print('Value: %f, Validation accuracy: %.3f, ' % (param, np.mean(acc_list))) #val_acc))
+        print(acc_list, '\n')
