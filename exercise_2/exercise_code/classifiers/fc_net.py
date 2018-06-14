@@ -210,12 +210,13 @@ class FullyConnectedNet(object):
             self.params[b_param_ix] = np.zeros(nodes_ct[ix])
 
         # Batch norm
-        for ix in range(1, self.num_layers):
-            gamma_param_ix = 'gamma' + str(ix)
-            beta_param_ix = 'beta' + str(ix)
+        if self.use_batchnorm:
+            for ix in range(1, self.num_layers):
+                gamma_param_ix = 'gamma' + str(ix)
+                beta_param_ix = 'beta' + str(ix)
 
-            self.params[gamma_param_ix] = np.ones(nodes_ct[ix])
-            self.params[beta_param_ix] = np.zeros(nodes_ct[ix])
+                self.params[gamma_param_ix] = np.ones(nodes_ct[ix])
+                self.params[beta_param_ix] = np.zeros(nodes_ct[ix])
 
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -277,15 +278,19 @@ class FullyConnectedNet(object):
         # Store the params into variables
         W = [self.params['W' + str(ix + 1)] for ix in range(self.num_layers)]
         b = [self.params['b' + str(ix + 1)] for ix in range(self.num_layers)]
-        gamma = [self.params['gamma' + str(ix + 1)] for ix in range(self.num_layers - 1)]
-        beta = [self.params['beta' + str(ix + 1)] for ix in range(self.num_layers - 1)]
+
+        if self.use_batchnorm:
+            gamma = [self.params['gamma' + str(ix + 1)] for ix in range(self.num_layers - 1)]
+            beta = [self.params['beta' + str(ix + 1)] for ix in range(self.num_layers - 1)]
 
         # Forward pass hidden layers
         cache_list = []
         cur_layer = X
         for ix in range(self.num_layers - 1):
-            #cur_layer, cache = affine_relu_forward(cur_layer, W[ix], b[ix])
-            cur_layer, cache = affine_bn_relu_forward(cur_layer, W[ix], b[ix], gamma[ix], beta[ix], self.bn_params[ix])
+            if self.use_batchnorm:
+                cur_layer, cache = affine_bn_relu_forward(cur_layer, W[ix], b[ix], gamma[ix], beta[ix], self.bn_params[ix])
+            else:
+                cur_layer, cache = affine_relu_forward(cur_layer, W[ix], b[ix])
             cache_list.append(cache)
 
         # Forward pass output layer, obtain score
@@ -334,8 +339,10 @@ class FullyConnectedNet(object):
             gamma_grad_ix = 'gamma' + str(ix)
             beta_grad_ix = 'beta' + str(ix)
 
-            #cur_grads, grads[w_grad_ix], grads[b_grad_ix] = affine_relu_backward(cur_grads, cache_list[ix - 1])
-            cur_grads, grads[w_grad_ix], grads[b_grad_ix], grads[gamma_grad_ix], grads[beta_grad_ix] = affine_bn_relu_backward(cur_grads, cache_list[ix - 1])
+            if self.use_batchnorm:
+                cur_grads, grads[w_grad_ix], grads[b_grad_ix], grads[gamma_grad_ix], grads[beta_grad_ix] = affine_bn_relu_backward(cur_grads, cache_list[ix - 1])
+            else:
+                cur_grads, grads[w_grad_ix], grads[b_grad_ix] = affine_relu_backward(cur_grads, cache_list[ix - 1])
             grads[w_grad_ix] += self.reg * W[ix - 1]
 
         ############################################################################
