@@ -59,6 +59,10 @@ def conv_forward_naive(x, w, b, conv_param):
     for f in range(F):
         out[:, f, :, :] += b[f]
 
+    # Cache the expanded weight matrix instead :)
+    conv_param['k_shape'] = w.shape[2:]
+    w = w_mtx
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -85,26 +89,25 @@ def conv_backward_naive(dout, cache):
     #############################################################################
 
     x, w, b, conv_param = cache
-    N, C, H, W = x.shape
-    HH, WW = w.shape[2:]
-    F = b.shape[0]
     stride = conv_param['stride']
 
-    dx = np.zeros_like(x)
-    dw = np.zeros_like(w)
+    N, C, H, W = x.shape
+    HH, WW = conv_param['k_shape']
+    F, H_out, W_out = dout.shape[1:]
+
     db = dout.sum((0, 2, 3))
+    dout = dout.reshape(N, -1)
 
+    dx = dout.dot(w).reshape(x.shape)[:, :, 1:-1, 1:-1]
+    dw_mtx = dout.T.dot(x.reshape(N, -1)).reshape(F, H_out, W_out, C, H, W)
+
+    dw = np.zeros((F, C, HH, WW))
     for f in range(F):
-        for i in range(HH):
-            for j in range(WW):
-                for n in range(N):
-                    # Get top-left corner of moving window
-                    cur_h = i * stride
-                    cur_w = j * stride
-                    dw[f, :, :, :] += dout[n, f, i, j] * x[n, :, cur_h:cur_h+HH, cur_w:cur_w+WW]
-                    dx[n, :, cur_h:cur_h+HH, cur_w:cur_w+WW] += dout[n, f, i, j] * dw[f, :, :, :]
-
-    dx = dx[:, :, 1:-1, 1:-1]
+        for i in range(H_out):
+            for j in range(W_out):
+                cur_h = i * stride
+                cur_w = j * stride
+                dw[f] += dw_mtx[f, i, j, :, cur_h:cur_h+HH, cur_w:cur_w+WW]
 
     #############################################################################
     #                             END OF YOUR CODE                              #
