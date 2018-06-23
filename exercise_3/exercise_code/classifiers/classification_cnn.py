@@ -53,8 +53,27 @@ class ClassificationCNN(nn.Module):
         # will not coincide with the Jupyter notebook cell.                    #
         ########################################################################
 
-        pass
-    
+        super(ClassificationCNN, self).__init__()
+
+        H_pad = (kernel_size + stride_conv * (height-1) - height) / 2
+        W_pad = (kernel_size + stride_conv * (width-1) - width) / 2
+
+        H_pool = int((height - pool) / stride_pool) + 1
+        W_pool = int((width - pool) / stride_pool) + 1
+
+        # Define layers
+        self.conv = nn.Conv2d(channels, num_filters, kernel_size, stride_conv, (H_pad, W_pad))
+        self.fc1 = nn.Linear(num_filters * H_pool * W_pool, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, num_classes)
+        self.dropout = nn.Dropout(dropout)
+
+        # Scale weights
+        self.conv.weight.data *= weight_scale
+
+        # Save parameters
+        self.pool = pool
+        self.stride_pool = stride_pool
+
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
@@ -76,8 +95,11 @@ class ClassificationCNN(nn.Module):
         # layers.                                                              #
         ########################################################################
 
-        pass
-    
+        x = F.max_pool2d(F.relu(self.conv(x)), self.pool, self.stride_pool)
+        x = x.view(x.size()[0], -1)
+        x = F.relu(self.dropout(self.fc1(x)))
+        x = self.fc2(x)
+
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################

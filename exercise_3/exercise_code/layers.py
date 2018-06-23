@@ -135,6 +135,25 @@ def max_pool_forward_naive(x, pool_param):
     # TODO: Implement the max pooling forward pass                              #
     #############################################################################
 
+    HH = pool_param['pool_width']
+    WW = pool_param['pool_height']
+    stride = pool_param['stride']
+
+    N, C, H, W = x.shape
+    H_out = int((H - HH) / stride + 1)
+    W_out = int((W - WW) / stride + 1)
+
+    out = np.zeros((N, C, H_out, W_out))
+    maxIdx = np.zeros((N, C, H_out, W_out), dtype=int)
+
+    for i in range(H_out):
+        for j in range(W_out):
+            cur_h = i * stride
+            cur_w = j * stride
+            cur_window = x[:, :, cur_h:cur_h+HH, cur_w:cur_w+WW].reshape(N, C, -1)
+            out[:, :, i, j] = np.amax(cur_window, axis=2)
+            maxIdx[:, :, i, j] = np.argmax(cur_window, axis=2)
+
     #############################################################################
     #                             END OF YOUR CODE                              #
     #############################################################################
@@ -157,6 +176,25 @@ def max_pool_backward_naive(dout, cache):
     #############################################################################
     # TODO: Implement the max pooling backward pass                             #
     #############################################################################
+
+    x, maxIdx, pool_param = cache
+    HH = pool_param['pool_width']
+    WW = pool_param['pool_height']
+    stride = pool_param['stride']
+
+    N, C, H, W = x.shape
+    H_out, W_out = dout.shape[2:]
+
+    dx = np.zeros((N, C, H, W))
+    for i in range(H_out):
+        for j in range(W_out):
+            cur_h = i * stride
+            cur_w = j * stride
+            cur_window = np.zeros((N, C, HH * WW))
+            for n in range(N):
+                for c in range(C):
+                    cur_window[n, c, maxIdx[n, c, i, j]] = dout[n, c, i, j]
+            dx[:, :, cur_h:cur_h+HH, cur_w:cur_w+WW] += cur_window.reshape((N, C, HH, WW))
 
     #############################################################################
     #                             END OF YOUR CODE                              #
