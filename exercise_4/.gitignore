@@ -1,0 +1,8 @@
+*.swp
+*.pyc
+.env/*
+.ipynb_checkpoints
+.DS_Store
+.pth
+
+datasets/*
